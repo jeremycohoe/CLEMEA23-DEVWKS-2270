@@ -1,5 +1,5 @@
-# Cisco Live US 2022 - DEVWKS-3270
-## Version 17.8
+# Cisco Live US 2022 - DEVWKS-2270
+## Version 17.10
 
 # Lab Introduction
 This lab focus on the configuration of a Catalyst 9300 switch and and a Ubuntu VM machine that has the necessary software dependencies to reproduce the MDT contents reviewed during the presentation. 
