@@ -67,8 +67,6 @@ After you approve the entry you should be able to see the following prompt:
 
 Telnet into the Catalyst 9300 into the second terminal window. Use the following credentials: admin / Cisco123
 
-![](imgs/telnet-gnmi-show.png)
-
 5. Once you finished accesing via SSH and telnet into the VM and the switch respectively, this is how you should see them:
 ![](imgs/vm_c9300_terminals.png)
 
