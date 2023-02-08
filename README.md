@@ -1,5 +1,5 @@
 # Cisco Live US 2022 - DEVWKS-3270
-## Version 17.8
+## Version 17.10
 
 # Lab Introduction
 This lab focus on the configuration of a Catalyst 9300 switch and and a Ubuntu VM machine that has the necessary software dependencies to reproduce the MDT contents reviewed during the presentation. 
@@ -11,23 +11,7 @@ You will access the lab via SSH. Please find below the actual lab environment an
 ![](imgs/lab_env.png)
 
 
-# Lab Configuration Scope
-
-## gNOI Certificate Management Client
-
-We are going to shield the switch to VM communication using certificates. A simple shell binary that performs Certificate Management client operations against a gNOI Target complete the operation.
-
-### Certificates
-
-Only the Root certificate and private key are required for this client. The client will:
-
-* generate a client certificate for establishing the connection to the Target
-
-* sign target signing requests for installing or rotating certificates on the Target
-
-The client certificates can also be provided to establish the connection to the target and will be used instead.
-
-For the sake of brevity, we will just take care of the following aspects of this configuration: 1) the GNXI switch configuration and 2) the certificate provision on the VM. 
+# Lab Configuration
 
 ## MDT Subscription Configuration
 ![](imgs/IOSXE_sub_config.png)
@@ -55,8 +39,6 @@ After you approve the entry you should be able to see the following prompt:
 
 
 4. Telnet into the Catalyst 9300 into the second window that you opened before. Use the following credentials: admin / Cisco123
-
-![](imgs/telnet-gnmi-show.png)
 
 5. Once you finished accesing via SSH and telnet into the VM and the switch respectively, this is how you should see them:
 ![](imgs/vm_c9300_terminals.png)
