@@ -1,5 +1,5 @@
 # Cisco Live US 2022 - DEVWKS-3270
-## Version 17.10
+## Version 17.8
 
 # Lab Introduction
 This lab focus on the configuration of a Catalyst 9300 switch and and a Ubuntu VM machine that has the necessary software dependencies to reproduce the MDT contents reviewed during the presentation. 
@@ -11,7 +11,23 @@ You will access the lab via SSH. Please find below the actual lab environment an
 ![](imgs/lab_env.png)
 
 
-# Lab Configuration
+# Lab Configuration Scope
+
+## gNOI Certificate Management Client
+
+We are going to shield the switch to VM communication using certificates. A simple shell binary that performs Certificate Management client operations against a gNOI Target complete the operation.
+
+### Certificates
+
+Only the Root certificate and private key are required for this client. The client will:
+
+* generate a client certificate for establishing the connection to the Target
+
+* sign target signing requests for installing or rotating certificates on the Target
+
+The client certificates can also be provided to establish the connection to the target and will be used instead.
+
+For the sake of brevity, we will just take care of the following aspects of this configuration: 1) the GNXI switch configuration and 2) the certificate provision on the VM. 
 
 ## MDT Subscription Configuration
 ![](imgs/IOSXE_sub_config.png)
@@ -20,13 +36,25 @@ You will access the lab via SSH. Please find below the actual lab environment an
 
 1. Identify your pod#.
  
-2. Open two terminal windows and SSH to both. One window will be used to configure the VM. The second window is for telnet access into the C9300.
-
-3. To SSH into the devices, copy/paste the below line into each of the terminal sessions. Replace the ## symbol on the SSH command with your pod number. Use the password given to you by the facilitator.
+2. Open a terminal window and SSH to the VM for your pod. To SSH into the devices, copy/paste the below line into the terminal session. Replace the ## symbol on the SSH command with your pod number. Use the password given to you by the facilitator.
 
 ```ssh -p 3389 -L 18480:localhost:8480 -L 13000:localhost:3000 auto@pod##-xelab.cisco.com```
 
-    Once you logged into the VM, the first time you login, you'll see this question:
+Once you logged into the VM, the first time you login, you'll see this question:
+
+`Are you sure you want to continue connecting (yes/no/[fingerprint])?` 
+
+Type, `yes` to continue 
+
+After you approve the entry you should be able to see the following prompt:
+
+![](imgs/pod_login.png)
+
+4. Open a *second terminal window* for *telnet access into the C9300*. To SSH into the devices, copy/paste the below line into the terminal session. Replace the ## symbol on the SSH command with your pod number. Use the password given to you by the facilitator. 
+
+```ssh -p 3389 auto@pod##-xelab.cisco.com```
+
+Once you logged into the VM, the first time you login, you'll see this question:
 
 `Are you sure you want to continue connecting (yes/no/[fingerprint])?` 
 
@@ -37,8 +65,9 @@ After you approve the entry you should be able to see the following prompt:
 ![](imgs/pod_login.png)
 
 
+Telnet into the Catalyst 9300 into the second terminal window. Use the following credentials: admin / Cisco123
 
-4. Telnet into the Catalyst 9300 into the second window that you opened before. Use the following credentials: admin / Cisco123
+![](imgs/telnet-gnmi-show.png)
 
 5. Once you finished accesing via SSH and telnet into the VM and the switch respectively, this is how you should see them:
 ![](imgs/vm_c9300_terminals.png)
@@ -47,11 +76,11 @@ After you approve the entry you should be able to see the following prompt:
 
 # Review YANG Suite
 
-Login to YANG Suite and load the CPU YANG model
+Login to YANG Suite and load the CPU YANG model.
 
 YANG Suite is accessible at http://localhost:18480 via the tunnel and the credentials are the same as the C9300 at admin/Cisco123
 
-This is an interaction section - follow along with the proctor
+This is an interactive section - follow along with the proctor.
 
 
 # Configuring Telemetry Subscriptions on the Catalyst 9300
@@ -60,13 +89,13 @@ The next step is configure the telemetry subscriptions. This consists of several
 
 1. Every process that you need to monitor from the device requires a subscription. We will create four subscriptions to monitor the following aspects: CPU, Power, Memory and Temperature.
 
-1. In our case, the type of encoding is: ‘encode-kvgpb’
+1. In our case, the type of encoding is: `encode-kvgpb`
 
-1. YANG Push can be used to monitor configuration or operational datastore changes. We will use: ‘ stream yang-push’ 
+1. YANG Push can be used to monitor configuration or operational datastore changes. We will use: `stream yang-push`
 
-1. Periodicity. Tells how frequently we want to send the traffic (in milliseconds) to the receiver of the traffic.
+1. Periodicity. Tells how frequently we want to send the traffic (in milliseconds) to the receiver of the traffic: `6000`
 
-1. Specify the receiver of the traffic, in this case is the switch: 10.1.1.5. 
+1. Specify the receiver of the traffic, in this case is the switch: `10.1.1.5` 
 
 1. Copy & paste or enter the following commands, exactly as they appear on the Catalyst 9300:
 
@@ -131,113 +160,107 @@ The CPU Utilization streaming telemetry data, the average and current memory c
 
 This shows the telemetry data that was configured earlier in this lab using Grafana for visualization of the data.
 
-# Explore the TIG
-
 # gRPC Dial-Out Configured Subscriptions
 
-Lets continue by checking the subscriptions configured on the Catalyst 9300.
+Check the subscriptions currently configured on the Catalyst 9300.
 
-Step 1. Open a SSH connection to the Catalyst 9300 switch
+1. In the terminal window that's using telnet to connect to the Catalyst 9300 switch, check the subscription configured on the device using the following Cisco IOS XE CLI 
 
-Step 2. Check the subscription configured on the device using the following IOS XE CLI
-
-**C9300# show run | sec telemetry**
+**c9300# show run | sec telemetry**
 
 ![](imgs/3-showrunsectel.png)
 
-Lets analyze the main parts of the subscription configuration:
+Lets analyze the main parts of the subscription configuration. Note: the current device will look similar to the following, but there may be slight variations in subscription IDs and other variables:
 
-- telemetry ietf subscription 101 (subscription ID)
-- encoding encode-kvgpb (Key-Value pair encoding)
-- filter xpath /process-cpu-ios-xe-oper:cpu-usage/cpu-utilization/five-seconds (xpath)
-- update-policy periodic 500 (period in 1/100 seconds, 5 secs here)
-- receiver ip address 10.1.1.3 57500 protocol grpc-tcp (receivers IP, port and protocol)
+- `telemetry ietf subscription 6041337` (subscription ID)
+- `encoding encode-kvgpb` (key-value pair with Google Protobuf encoding)
+- `filter xpath /process-cpu-ios-xe-oper:cpu-usage/cpu-utilization/five-seconds` (xpath that maps to the specific YANG model from which we want to receieve telemetry data)
+- `update-policy periodic 500` (period in 1/100 seconds, 5 secs here)
+- `receiver ip address 10.1.1.3 57500 protocol grpc-tcp` (receivers IP, port and protocol)
 
 This telemetry configuration has already been applied to the switch. However, if it needs to be re-applied the following can be used to easily copy/paste:
 
 ```
 conf t
-telemetry ietf subscription 101
-encoding encode-kvgpb
-filter xpath /process-cpu-ios-xe-oper:cpu-usage/cpu-utilization/five-seconds
-source-address 10.1.1.5
-stream yang-push
-update-policy periodic 500
-receiver ip address 10.1.1.3 57500 protocol grpc-tcp
+telemetry ietf subscription 6041337
+ encoding encode-kvgpb
+ filter xpath /process-cpu-ios-xe-oper:cpu-usage/cpu-utilization/five-seconds
+ stream yang-push
+ update-policy periodic 30000
+ receiver ip address 10.1.1.3 57500 protocol grpc-tcp
 
 ```
 
-Step 3. Verify the configured subscription using the following **telemetry** IOS XE CLIs
+2. Verify the configured subscription using the following **telemetry** IOS XE CLIs
 
 **c9300# sh telemetry ietf subscription all**
 
 ```
-
 Telemetry subscription brief
 
 ID               Type        State       Filter type
 -----------------------------------------------------
-101              Configured  Valid       xpath
+6041337         Configured   Valid      Subscription validated
+ 
+2147483648      Dynamic      Valid      Subscription validated
 
 ```
 
 
-**c9300# sh telemetry ietf subscription 101 detail**
+**c9300# sh telemetry ietf subscription 6041337 detail**
 
 ```
 Telemetry subscription detail:
 
-Subscription ID: 101
-Type: Configured
-State: Valid
-Stream: yang-push
-Filter:
-Filter type: xpath
-XPath: /process-cpu-ios-xe-oper:cpu-usage/cpu-utilization/five-seconds
-Update policy:
-Update Trigger: periodic
-Period: 500
-Encoding: encode-kvgpb
-Source VRF:
-Source Address: 10.1.1.5
-Notes:
+  Subscription ID: 6041337
+  Type: Configured
+  State: Valid
+  Stream: yang-push
+  Filter:
+    Filter type: xpath
+    XPath: /process-cpu-ios-xe-oper:cpu-usage/cpu-utilization/five-seconds
+  Update policy:
+    Update Trigger: periodic
+    Period: 30000
+  Encoding: encode-kvgpb
+  Source VRF:
+  Source Address:
+  Notes: Subscription validated
 
-Receivers:
-Address          Port             Protocol         Protocol Profil
-------------------------------------------------------------------
-10.1.1.3         57500            grpc-tcp
-
+  Named Receivers:
+    Name                                              Last State Change  State                 Explanation
+    -------------------------------------------------------------------------------------------------------------------------------------------------------
+    grpc-tcp://10.1.1.3:57500                         02/08/23 07:59:33  Connected
 ```
 
-**c9300# sh telemetry ietf subscription 101 receiver**
+**c9300# sh telemetry ietf subscription 6041337 receiver**
 
 ```
 Telemetry subscription receivers detail:
 
-Subscription ID: 101
-Address: 10.1.1.3
-Port: 57500
-Protocol: grpc-tcp
-Profile:
-State: Connected
-Explanation:
+  Subscription ID: 6041337
+  Name: grpc-tcp://10.1.1.3:57500
+  Connection: 46
+  State: Connected
+  Explanation:
+  Last Error: Transport lost
+
 ```
 
 
-The State should report **Connected**.
+The "State" should report **Connected**.
 
 If that state does not show Connected, for example, if it is the  "Connecting " state, then simple remove and re-add the telemetry configuration before continuing with the next steps and troubleshooting:
 
 ```
 conf t
-no telemetry ietf subscription 101
-telemetry ietf subscription 101
-encoding encode-kvgpb
-filter xpath /process-cpu-ios-xe-oper:cpu-usage/cpu-utilization/five-seconds
-source-address 10.1.1.5
-stream yang-push
-update-policy periodic 500
-receiver ip address 10.1.1.3 57500 protocol grpc-tcp
+no telemetry ietf subscription 6041337
+telemetry ietf subscription 6041337
+ encoding encode-kvgpb
+ filter xpath /process-cpu-ios-xe-oper:cpu-usage/cpu-utilization/five-seconds
+ stream yang-push
+ update-policy periodic 30000
+ receiver ip address 10.1.1.3 57500 protocol grpc-tcp
 ```
 
 Note: If the state does not show  "Connected" then ensure the Docker container with the Telegraf receiver is running correctly. Follow the next steps to confirm status of each component.
@@ -284,7 +307,7 @@ The **telegraf-grpc.conf** configuration file shows us the following:
 
 **Output Plugin:** This defines where the received data is sent to (outputs.influxdb) the database to use (telegraf) and the URL for InfluxDB ([http://127.0.0.1:8086](http://127.0.0.1:8086/))
 
-**Outputs.file** : sends a copy of the data to the text file at /root/telegraf/telegraf.log
+**Outputs.file:** sends a copy of the data to the text file at /root/telegraf/telegraf.log
 
 These configuration options are defined as per the README file in each of the respective input or output plugins. For more details of the cisco_telemetry_mdt plugin that is in use here, see the page at ["https://github.com/influxdata/telegraf/tree/master/plugins/inputs/cisco_telemetry_mdt"]("https://github.com/influxdata/telegraf/tree/master/plugins/inputs/cisco_telemetry_mdt")
 
@@ -354,7 +377,7 @@ Cisco-IOS-XE-process-cpu-oper:cpu-usage/cpu-utilization
 name: Cisco-IOS-XE-process-cpu-oper:cpu-usage/cpu-utilization
 time count
 ---- -----
-0    1134
+0    4527
 >
 ```
 
