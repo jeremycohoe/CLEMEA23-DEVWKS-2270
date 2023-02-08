@@ -397,7 +397,7 @@ Verify Grafana is running: with the following command: **ps xa | grep grafana**
 44 ? Sl 0:32 /usr/sbin/grafana-server --pidfile=/var/run/grafana-server.pid --config=/etc/grafana/grafana.ini --packaging=deb cfg:default.paths.provisioning=/etc/grafana/provisioning cfg:default.paths.data=/var/lib/grafana cfg:default.paths.logs=/var/log/grafan cfg:default.paths.plugins=/var/lib/grafana/plugins**
 ```
 
-Step 1. Open Firefox or Chrome and access the interface Grafana at [http://10.1.1.3:3000](http://10.1.1.3:3000/)
+ 1. Open Firefox or Chrome and access the interface Grafana at [http://10.1.1.3:13000](http://10.1.1.3:13000/)
 
 You should see the following dashboard after logging in with admin:Cisco123
 
@@ -405,12 +405,12 @@ You should see the following dashboard after logging in with admin:Cisco123
 
 To better understand the Grafana dashboard, lets edit the dashlet to see which data is being displayed:
 
-Step 2. Access the Grafan UI on HTT port 3000
-Step 3. Click the **"CPU Utilization"** drop-down and then select **"Edit "**
+2. Access the Grafan UI on HTT port 3000
+3. Click the **"CPU Utilization"** drop-down and then select **"Edit "**
 
 ![](imgs/9b-grafana-edit.png)
 
-Step 4. Review the information this is pre-configured for this particular chart, specifically the FROM and SELECT sections
+4. Review the information this is pre-configured for this particular chart, specifically the FROM and SELECT sections
 
 ![](imgs/9c-grafana-details.png)
 
