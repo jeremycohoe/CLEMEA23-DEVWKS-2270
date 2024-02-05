@@ -1,5 +1,5 @@
-# Cisco Live US 2022 - DEVWKS-2270
-## Version 17.10
+# Cisco Live Europe 2024 - DEVWKS-2270
+## Version 17.12
 
 # Lab Introduction
 This lab focus on the configuration of a Catalyst 9300 switch and and a Ubuntu VM machine that has the necessary software dependencies to reproduce the MDT contents reviewed during the presentation. 
@@ -11,25 +11,7 @@ You will access the lab via SSH. Please find below the actual lab environment an
 ![](imgs/lab_env.png)
 
 
-# Lab Configuration Scope
-
-## gNOI Certificate Management Client
-
-We are going to shield the switch to VM communication using certificates. A simple shell binary that performs Certificate Management client operations against a gNOI Target complete the operation.
-
-### Certificates
-
-Only the Root certificate and private key are required for this client. The client will:
-
-* generate a client certificate for establishing the connection to the Target
-
-* sign target signing requests for installing or rotating certificates on the Target
-
-The client certificates can also be provided to establish the connection to the target and will be used instead.
-
-For the sake of brevity, we will just take care of the following aspects of this configuration: 1) the GNXI switch configuration and 2) the certificate provision on the VM. 
-
-## MDT Subscription Configuration
+## Model Driven Telemetry
 ![](imgs/IOSXE_sub_config.png)
 
 # Accessing the lab environment 
@@ -38,7 +20,17 @@ For the sake of brevity, we will just take care of the following aspects of this
  
 2. Open a terminal window and SSH to the VM for your pod. To SSH into the devices, copy/paste the below line into the terminal session. Replace the ## symbol on the SSH command with your pod number. Use the password given to you by the facilitator.
 
-```ssh -p 3389 -L 18480:localhost:8480 -L 13000:localhost:3000 auto@pod##-xelab.cisco.com```
+```ssh -p 3389 -L 18480:localhost:8480 -L 13000:localhost:3000 auto@128.107.223.2<##>```
+
+For example POD 04
+
+```ssh -p 3389 -L 18480:localhost:8480 -L 13000:localhost:3000 auto@128.107.223.204```
+
+For example POD 27
+
+```ssh -p 3389 -L 18480:localhost:8480 -L 13000:localhost:3000 auto@128.107.223.227```
+
+
 
 Once you logged into the VM, the first time you login, you'll see this question:
 
@@ -52,7 +44,9 @@ After you approve the entry you should be able to see the following prompt:
 
 4. Open a *second terminal window* for *telnet access into the C9300*. To SSH into the devices, copy/paste the below line into the terminal session. Replace the ## symbol on the SSH command with your pod number. Use the password given to you by the facilitator. 
 
-```ssh -p 3389 auto@pod##-xelab.cisco.com```
+```ssh -p 3389 auto@128.107.223.2<##>```
+
+Remember to reaplce ## with your POD ID # !
 
 Once you logged into the VM, the first time you login, you'll see this question:
 
@@ -80,10 +74,12 @@ YANG Suite is accessible at http://localhost:18480 via the tunnel and the creden
 
 This is an interactive section - follow along with the proctor.
 
+Steps: Login to YANG Suite, select Explore YANG, select the YANG repository and CPU data model then click Load.
+
 
 # Configuring Telemetry Subscriptions on the Catalyst 9300
 
-The next step is configure the telemetry subscriptions. This consists of several configuration steps:
+The next step is to review the telemetry subscriptions. Run the **show run | section tel** CLI and review the returned details:
 
 1. Every process that you need to monitor from the device requires a subscription. We will create four subscriptions to monitor the following aspects: CPU, Power, Memory and Temperature.
 
@@ -95,46 +91,7 @@ The next step is configure the telemetry subscriptions. This consists of several
 
 1. Specify the receiver of the traffic, in this case is the switch: `10.1.1.5` 
 
-1. Copy & paste or enter the following commands, exactly as they appear on the Catalyst 9300:
 
-![](imgs/mdt_subscriptions.png)
-
-```
-configure terminal
-telemetry ietf subscription 1010
-encoding encode-kvgpb
-filter xpath /process-cpu-ios-xe-oper:cpu-usage/cpu-utilization/five-seconds
-source-address 10.1.1.5
-stream yang-push
-update-policy periodic 6000
-receiver ip address 10.1.1.3 57500 protocol grpc-tcp
-
-telemetry ietf subscription 1020
-encoding encode-kvgpb 
-filter xpath /poe-ios-xe-oper:poe-oper-data
-source-address 10.1.1.5
-stream yang-push
-update-policy periodic 6000
-receiver ip address 10.1.1.3 57500 protocol grpc-tcp
-
-telemetry ietf subscription 1030
-encoding encode-kvgpb
-filter xpath /memory-ios-xe-oper:memory-statistics/memory-statistic
-source-address 10.1.1.5
-stream yang-push
-update-policy periodic 6000
-receiver ip address 10.1.1.3 57500 protocol grpc-tcp
- 
-telemetry ietf subscription 1040
-encoding encode-kvgpb
-filter xpath /oc-platform:components/component/state/temperature
-source-address 10.1.1.5
-stream yang-push
-update-policy periodic 6000
-receiver ip address 10.1.1.3 57500 protocol grpc-tcp
-```
-
- 
  
  
  # Increased Observability with IOS XE Telemetry displayed in Grafana
