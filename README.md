@@ -16,9 +16,9 @@ You will access the lab via SSH. Please find below the actual lab environment an
 
 # Accessing the lab environment 
 
-1. Identify your pod#.
+Step 1: Identify your pod#.
  
-2. Open a terminal window and SSH to the VM for your pod. To SSH into the devices, copy/paste the below line into the terminal session. Replace the ## symbol on the SSH command with your pod number. Use the password given to you by the facilitator.
+Step 2: Open a terminal window and SSH to the VM for your pod. To SSH into the devices, copy/paste the below line into the terminal session. Replace the ## symbol on the SSH command with your pod number. Use the password given to you by the facilitator.
 
 ```ssh -p 3389 -L 18480:localhost:8480 -L 13000:localhost:3000 auto@128.107.223.2<##>```
 
@@ -30,33 +30,21 @@ For example POD 27
 
 ```ssh -p 3389 -L 18480:localhost:8480 -L 13000:localhost:3000 auto@128.107.223.227```
 
-
-
-Once you logged into the VM, the first time you login, you'll see this question:
+You may be asked to accept the certificate
 
 `Are you sure you want to continue connecting (yes/no/[fingerprint])?` 
 
-Type, `yes` to continue 
+Type, `yes` to continue  then press enter
 
 After you approve the entry you should be able to see the following prompt:
 
 ![](imgs/pod_login.png)
 
-4. Open a *second terminal window* for *telnet access into the C9300*. To SSH into the devices, copy/paste the below line into the terminal session. Replace the ## symbol on the SSH command with your pod number. Use the password given to you by the facilitator. 
+Step 3: Open a *second terminal window* for *telnet access into the C9300*. To SSH into the devices, copy/paste the below line into the terminal session. Replace the ## symbol on the SSH command with your pod number. Use the password given to you by the facilitator. 
 
 ```ssh -p 3389 auto@128.107.223.2<##>```
 
 Remember to reaplce ## with your POD ID # !
-
-Once you logged into the VM, the first time you login, you'll see this question:
-
-`Are you sure you want to continue connecting (yes/no/[fingerprint])?` 
-
-Type, `yes` to continue 
-
-After you approve the entry you should be able to see the following prompt:
-
-![](imgs/pod_login.png)
 
 
 Telnet into the Catalyst 9300 into the second terminal window. Use the following credentials: admin / Cisco123
